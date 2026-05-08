@@ -1,0 +1,30 @@
+aioredis
+Faker==33.3.0
+fastapi==0.135.3
+passlib==1.7.4
+playwright==1.48.0
+pydantic==2.13.1
+pydantic_core==2.46.1
+pydantic_settings==2.13.1
+SQLAlchemy==2.0.36
+uvicorn==0.44.0
+psycopg2-binary
+pydantic[email]
+pytest-cov
+bcrypt<4.0.0     
+passlib[bcrypt]
+httpx
+
+# --- Security Patches ---
+cryptography     >= 46.0.6  #CVE-2026-34073 
+ecdsa            >= 0.19.2  #CVE-2026-33936 
+starlette        >= 0.49.1  #CVE-2025-62727 
+h11              >= 0.16.0  #CVE-2025-43859 
+jinja2           >= 3.1.6   #CVE-2025-27516 
+pyasn1           >= 0.6.3   #CVE-2026-30922 
+pyjwt            >= 2.12.0  #CVE-2026-32597 
+pytest           >= 9.0.3   #CVE-2025-71176 
+python-jose      >= 3.4.0   #PYSEC-2024-233 
+python-multipart >= 0.0.22  #CVE-2026-24486 
+requests         >= 2.33.0  #CVE-2026-25645 
+urllib3          >= 2.6.3   #CVE-2026-21441 
