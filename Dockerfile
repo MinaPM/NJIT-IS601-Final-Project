@@ -17,7 +17,9 @@ RUN python -m pip install --upgrade pip setuptools>=70.0.0 wheel
 
 # Create non-root user
 RUN groupadd -r appgroup && \
-    useradd -r -g appgroup appuser
+    useradd -r -g appgroup appuser && \
+    mkdir -p /home/appuser && \
+    chown -R appuser:appgroup /home/appuser
 
 # Copy dependencies and install them
 COPY requirements.txt .
