@@ -9,21 +9,13 @@
 
 <body>
     <h1>User Information</h1>
-
-    <ul>
-        <li>Username: <span id="username">Loading...</span></li>
-        <li>Email: <span id="email">Loading...</span></li>
-        <li>First Name: <span id="first-name">Loading...</span></li>
-        <li>Last Name: <span id="last-name">Loading...</span></li>
-        <li>Active: <span id="is-active">Loading...</span></li>
-        <li>Verified: <span id="is-verified">Loading...</span></li>
-    </ul>
+    <pre id="user-info">Loading...</pre>
 
     <script>
         async function loadUser() {
             const token = localStorage.getItem("access_token");
             if (!token) {
-                document.body.innerHTML = "<p>No access token found. Please log in.</p>";
+                document.getElementById("user-info").textContent = "No access token found. Please log in.";
                 return;
             }
 
@@ -34,25 +26,12 @@
             });
 
             if (!res.ok) {
-                document.body.innerHTML = "<p>Not authenticated.</p>";
+                document.getElementById("user-info").textContent = "Not authenticated.";
                 return;
             }
 
             const user = await res.json();
-            console.log("auth/me response:", user);
-
-            document.getElementById("username").textContent =
-                user.username ?? user.user_name ?? "Unknown";
-            document.getElementById("email").textContent =
-                user.email ?? "Unknown";
-            document.getElementById("first-name").textContent =
-                user.first_name ?? user.firstName ?? "Unknown";
-            document.getElementById("last-name").textContent =
-                user.last_name ?? user.lastName ?? "Unknown";
-            document.getElementById("is-active").textContent =
-                user.is_active ?? user.isActive ?? "Unknown";
-            document.getElementById("is-verified").textContent =
-                user.is_verified ?? user.isVerified ?? "Unknown";
+            document.getElementById("user-info").textContent = JSON.stringify(user, null, 2);
         }
 
         loadUser();
