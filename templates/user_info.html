@@ -10,31 +10,38 @@
 <body>
     <h1>User Information</h1>
     <pre id="user-info">Loading...</pre>
+    <p>Username: <span id="username"></span></p>
+    <p>Email: <span id="email"></span></p>
+    <p>Name: <span id="first-name"></span> <span id="last-name"></span></p>
+
 
     <script>
-        async function loadUser() {
+        async function loadUserProfile() {
             const token = localStorage.getItem("access_token");
+
             if (!token) {
-                document.getElementById("user-info").textContent = "No access token found. Please log in.";
-                return;
+                window.location.href = "/login";
             }
 
             const res = await fetch("/auth/me", {
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
+                headers: { "Authorization": `Bearer ${token}` }
             });
 
             if (!res.ok) {
-                document.getElementById("user-info").textContent = "Not authenticated.";
-                return;
+                window.location.href = "/login";
             }
 
             const user = await res.json();
-            document.getElementById("user-info").textContent = JSON.stringify(user, null, 2);
+            // populate your fields
+
+            document.getElementById("username").textContent = user.username;
+            document.getElementById("email").textContent = user.email;
+            document.getElementById("first-name").textContent = user.first_name;
+            document.getElementById("last-name").textContent = user.last_name;
+            // document.getElementById("verified").textContent = user.is_verified ? "Yes" : "No";
         }
 
-        loadUser();
+        loadUserProfile();
     </script>
 </body>
 

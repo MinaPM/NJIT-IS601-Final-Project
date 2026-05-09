@@ -4,11 +4,17 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from app.schemas.user import UserResponse
 from app.models.user import User
+from app.database import get_db
+from sqlalchemy.orm import Session
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
+
 def get_current_user(
-    token: str = Depends(oauth2_scheme)
+        token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+
 ) -> UserResponse:
     """
     Dependency to get the current user from the JWT token without a database lookup.
@@ -27,45 +33,27 @@ def get_current_user(
         raise credentials_exception
 
     try:
-        # If the token data is a dictionary:
         if isinstance(token_data, dict):
-            # If the payload contains a full set of user fields, use them directly.
             if "username" in token_data:
                 return UserResponse(**token_data)
-            # Otherwise, assume it is a minimal payload with only the 'sub' key.
             elif "sub" in token_data:
-                return UserResponse(
-                    id=token_data["sub"],
-                    username="unknown",
-                    email="unknown@example.com",
-                    first_name="Unknown",
-                    last_name="User",
-                    is_active=True,
-                    is_verified=False,
-                    created_at=datetime.utcnow(),
-                    updated_at=datetime.utcnow(),
-                )
+                user_id = token_data["sub"]
             else:
                 raise credentials_exception
-
-        # If the token data is directly a UUID (minimal payload):
         elif isinstance(token_data, UUID):
-            return UserResponse(
-                id=token_data,
-                username="unknown",
-                email="unknown@example.com",
-                first_name="Unknown",
-                last_name="User",
-                is_active=True,
-                is_verified=False,
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow(),
-            )
+            user_id = token_data
         else:
             raise credentials_exception
 
+        user = db.query(User).filter(User.id == user_id).first()
+        if user is None:
+            raise credentials_exception
+
+        return UserResponse.model_validate(user)
+
     except Exception:
         raise credentials_exception
+
 
 def get_current_active_user(
     current_user: UserResponse = Depends(get_current_user)
