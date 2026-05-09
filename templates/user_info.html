@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Profile</title>
+</head>
+
+<body>
+    <h1>User Information</h1>
+    <pre id="user-info">Loading...</pre>
+
+    <script>
+        async function loadUser() {
+            const token = localStorage.getItem("access_token");
+            if (!token) {
+                document.getElementById("user-info").textContent = "No access token found. Please log in.";
+                return;
+            }
+
+            const res = await fetch("/auth/me", {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            if (!res.ok) {
+                document.getElementById("user-info").textContent = "Not authenticated.";
+                return;
+            }
+
+            const user = await res.json();
+            document.getElementById("user-info").textContent = JSON.stringify(user, null, 2);
+        }
+
+        loadUser();
+    </script>
+</body>
+
+</html>
