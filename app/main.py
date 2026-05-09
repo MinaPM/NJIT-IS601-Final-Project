@@ -118,6 +118,26 @@ def register_page(request: Request):
     return templates.TemplateResponse(request=request, name="register.html")
 
 
+@app.get("/auth/me", response_model=UserResponse, tags=["auth"])
+def read_current_user(current_user=Depends(get_current_active_user)):
+    """
+    Return the authenticated user's profile data.
+    """
+    return current_user
+
+
+@app.get("/profile", response_class=HTMLResponse, tags=["web"])
+def profile_page(request: Request):
+    """
+    Profile page showing the authenticated user's information.
+    """
+    return templates.TemplateResponse(
+        request=request,
+        name="user_info.html",
+        context={"request": request},
+    )
+
+
 @app.get("/dashboard", response_class=HTMLResponse, tags=["web"])
 def dashboard_page(request: Request):
     """
