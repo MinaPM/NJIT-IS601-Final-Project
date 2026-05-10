@@ -14,6 +14,31 @@
     <p>Email: <span id="email"></span></p>
     <p>Name: <span id="first-name"></span> <span id="last-name"></span></p>
 
+    <button type="button" id="change-password-btn">Change Password</button>
+
+    <div id="password-form" style="display: none; margin-top: 16px;">
+        <h2>Change Password</h2>
+        <form id="change-password-form">
+            <div>
+                <label for="old-password">Old Password</label><br />
+                <input type="password" id="old-password" name="old_password" />
+            </div>
+            <div>
+                <label for="new-password">New Password</label><br />
+                <input type="password" id="new-password" name="new_password" />
+            </div>
+            <div>
+                <label for="confirm-password">Confirm Password</label><br />
+                <input type="password" id="confirm-password" name="confirm_password" />
+            </div>
+
+            <div style="margin-top: 12px;">
+                <button type="submit">Submit</button>
+                <button type="button" id="cancel-password-btn">Cancel</button>
+            </div>
+        </form>
+        <p id="password-message" style="color: red;"></p>
+    </div>
 
     <script>
         async function loadUserProfile() {
@@ -21,6 +46,7 @@
 
             if (!token) {
                 window.location.href = "/login";
+                return;
             }
 
             const res = await fetch("/auth/me", {
@@ -29,17 +55,70 @@
 
             if (!res.ok) {
                 window.location.href = "/login";
+                return;
             }
 
             const user = await res.json();
-            // populate your fields
 
             document.getElementById("username").textContent = user.username;
             document.getElementById("email").textContent = user.email;
             document.getElementById("first-name").textContent = user.first_name;
             document.getElementById("last-name").textContent = user.last_name;
-            // document.getElementById("verified").textContent = user.is_verified ? "Yes" : "No";
         }
+
+        const passwordForm = document.getElementById("password-form");
+        const changePasswordBtn = document.getElementById("change-password-btn");
+        const cancelPasswordBtn = document.getElementById("cancel-password-btn");
+        const changePasswordForm = document.getElementById("change-password-form");
+        const passwordMessage = document.getElementById("password-message");
+
+        changePasswordBtn.addEventListener("click", () => {
+            passwordMessage.textContent = "";
+            passwordForm.style.display = "block";
+        });
+
+        cancelPasswordBtn.addEventListener("click", () => {
+            changePasswordForm.reset();
+            passwordMessage.textContent = "";
+            passwordForm.style.display = "none";
+        });
+
+        changePasswordForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const oldPassword = document.getElementById("old-password").value;
+            const newPassword = document.getElementById("new-password").value;
+            const confirmPassword = document.getElementById("confirm-password").value;
+
+            if (newPassword !== confirmPassword) {
+                passwordMessage.textContent = "New password and confirmation do not match.";
+                return;
+            }
+
+            const token = localStorage.getItem("access_token");
+
+            const res = await fetch("/auth/change-password", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    old_password: oldPassword,
+                    new_password: newPassword
+                })
+            });
+
+            if (!res.ok) {
+                passwordMessage.textContent = "Password change failed.";
+                return;
+            }
+
+            changePasswordForm.reset();
+            passwordForm.style.display = "none";
+            passwordMessage.textContent = "";
+            alert("Password changed successfully.");
+        });
 
         loadUserProfile();
     </script>

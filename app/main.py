@@ -34,6 +34,7 @@ import uvicorn  # ASGI server for running FastAPI apps
 
 # Application imports
 from app.auth.dependencies import get_current_active_user  # Authentication dependency
+from app.auth.jwt import verify_password, get_password_hash
 from app.models.calculation import Calculation  # Database model for calculations
 from app.models.user import User  # Database model for users
 # API request/response schemas
@@ -41,11 +42,13 @@ from app.schemas.calculation import CalculationBase, CalculationResponse, Calcul
 from app.schemas.token import TokenResponse  # API token schema
 from app.schemas.user import UserCreate, UserResponse, UserLogin  # User schemas
 from app.database import Base, get_db, engine  # Database connection
-
+from pydantic import BaseModel
 
 # ------------------------------------------------------------------------------
 # Create tables on startup using the lifespan event
 # ------------------------------------------------------------------------------
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -183,6 +186,40 @@ def edit_calculation_page(request: Request, calc_id: str):
         HTMLResponse: Rendered template with calculation ID passed to frontend
     """
     return templates.TemplateResponse(request=request, name="edit_calculation.html", context={"calc_id": calc_id})
+
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
+
+
+@app.post("/auth/change-password")
+def change_password(
+    payload: ChangePasswordRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    user = db.query(User).filter(User.id == current_user.id).first()
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    # Use the mapped `password` column so changes persist to the database
+    if not user.verify_password(payload.old_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Old password is incorrect",
+        )
+
+    # Persist the new hashed password to the mapped `password` column
+    setattr(user, "password", get_password_hash(payload.new_password))
+    db.commit()
+    db.refresh(user)
+
+    return {"message": "Password changed successfully"}
 
 
 # ------------------------------------------------------------------------------
