@@ -1,264 +1,90 @@
-# 📦 Project Setup
+# NJIT IS601 Final Project
 
----
+FastAPI application for calculations, authentication, and profile management with a PostgreSQL backend.
 
-# 🧩 1. Install Homebrew (Mac Only)
+## Run The Application
 
-> Skip this step if you're on Windows.
+### With Docker Compose
 
-Homebrew is a package manager for macOS.  
-You’ll use it to easily install Git, Python, Docker, etc.
+1. Start the full stack:
 
-**Install Homebrew:**
+	```bash
+	docker compose up --build
+	```
 
-```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
+2. Open the app in your browser at `http://localhost:8000`.
 
-**Verify Homebrew:**
+3. Optional services:
+	- pgAdmin: `http://localhost:5050`
 
-```bash
-brew --version
-```
+### Locally With Python
 
-If you see a version number, you're good to go.
+1. Create and activate a virtual environment.
 
----
+2. Install dependencies:
 
-# 🧩 2. Install and Configure Git
+	```bash
+	pip install -r requirements.txt
+	```
 
-## Install Git
+3. Set the required environment variables, especially `DATABASE_URL`.
 
-- **MacOS (using Homebrew)**
+4. Initialize the database and start the API:
 
-```bash
-brew install git
-```
+	```bash
+	python -m app.database_init
+	uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+	```
 
-- **Windows**
+## Run Tests Locally
 
-Download and install [Git for Windows](https://git-scm.com/download/win).  
-Accept the default options during installation.
-
-**Verify Git:**
+Run the full test suite with:
 
 ```bash
-git --version
+pytest
 ```
 
----
-
-## Configure Git Globals
-
-Set your name and email so Git tracks your commits properly:
+You can also run the suites separately:
 
 ```bash
-git config --global user.name "Your Name"
-git config --global user.email "your_email@example.com"
+pytest tests/unit/
+pytest tests/integration/
+pytest tests/e2e/
 ```
 
-Confirm the settings:
+If you run the end-to-end tests directly, make sure Playwright browsers are installed first:
 
 ```bash
-git config --list
+playwright install
 ```
 
----
+## Docker Hub Repository
 
-## Generate SSH Keys and Connect to GitHub
+The published Docker image is available on Docker Hub at:
 
-> Only do this once per machine.
+[https://hub.docker.com/r/minam1/is601_final_project](https://hub.docker.com/r/minam1/is601_final_project)
 
-1. Generate a new SSH key:
+## Dependency Management
+
+This project uses a two-file workflow:
+
+- `requirements.in` stores the top-level dependencies you choose directly.
+- `requirements.txt` is the pinned lockfile generated from `requirements.in`.
+
+The dependency toolchain is:
 
 ```bash
-ssh-keygen -t ed25519 -C "your_email@example.com"
+pip install pipreqs pip-tools pip-audit
+pipreqs . --print
+pip-audit -r requirements.txt
+pip-compile requirements.in
+pip-sync requirements.txt
 ```
 
-(Press Enter at all prompts.)
+Typical usage:
 
-2. Start the SSH agent:
-
-```bash
-eval "$(ssh-agent -s)"
-```
-
-3. Add the SSH private key to the agent:
-
-```bash
-ssh-add ~/.ssh/id_ed25519
-```
-
-4. Copy your SSH public key:
-
-- **Mac/Linux:**
-
-```bash
-cat ~/.ssh/id_ed25519.pub | pbcopy
-```
-
-- **Windows (Git Bash):**
-
-```bash
-cat ~/.ssh/id_ed25519.pub | clip
-```
-
-5. Add the key to your GitHub account:
-   - Go to [GitHub SSH Settings](https://github.com/settings/keys)
-   - Click **New SSH Key**, paste the key, save.
-
-6. Test the connection:
-
-```bash
-ssh -T git@github.com
-```
-
-You should see a success message.
-
----
-
-# 🧩 3. Clone the Repository
-
-Now you can safely clone the course project:
-
-```bash
-git clone <repository-url>
-cd <repository-directory>
-```
-
----
-
-# 🛠️ 4. Install Python 3.10+
-
-## Install Python
-
-- **MacOS (Homebrew)**
-
-```bash
-brew install python
-```
-
-- **Windows**
-
-Download and install [Python for Windows](https://www.python.org/downloads/).  
-✅ Make sure you **check the box** `Add Python to PATH` during setup.
-
-**Verify Python:**
-
-```bash
-python3 --version
-```
-or
-```bash
-python --version
-```
-
----
-
-## Create and Activate a Virtual Environment
-
-(Optional but recommended)
-
-```bash
-python3 -m venv venv
-source venv/bin/activate   # Mac/Linux
-venv\Scripts\activate.bat  # Windows
-```
-
-### Install Required Packages
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-# 🐳 5. (Optional) Docker Setup
-
-> Skip if Docker isn't used in this module.
-
-## Install Docker
-
-- [Install Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/)
-- [Install Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/)
-
-## Build Docker Image
-
-```bash
-docker build -t <image-name> .
-```
-
-## Run Docker Container
-
-```bash
-docker run -it --rm <image-name>
-```
-
----
-
-# 🚀 6. Running the Project
-
-- **Without Docker**:
-
-```bash
-python main.py
-```
-
-(or update this if the main script is different.)
-
-- **With Docker**:
-
-```bash
-docker run -it --rm <image-name>
-```
-
----
-
-# 📝 7. Submission Instructions
-
-After finishing your work:
-
-```bash
-git add .
-git commit -m "Complete Module X"
-git push origin main
-```
-
-Then submit the GitHub repository link as instructed.
-
----
-
-# 🔥 Useful Commands Cheat Sheet
-
-| Action                         | Command                                          |
-| ------------------------------- | ------------------------------------------------ |
-| Install Homebrew (Mac)          | `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` |
-| Install Git                     | `brew install git` or Git for Windows installer |
-| Configure Git Global Username  | `git config --global user.name "Your Name"`      |
-| Configure Git Global Email     | `git config --global user.email "you@example.com"` |
-| Clone Repository                | `git clone <repo-url>`                          |
-| Create Virtual Environment     | `python3 -m venv venv`                           |
-| Activate Virtual Environment   | `source venv/bin/activate` / `venv\Scripts\activate.bat` |
-| Install Python Packages        | `pip install -r requirements.txt`               |
-| Build Docker Image              | `docker build -t <image-name> .`                |
-| Run Docker Container            | `docker run -it --rm <image-name>`               |
-| Push Code to GitHub             | `git add . && git commit -m "message" && git push` |
-
----
-
-# 📋 Notes
-
-- Install **Homebrew** first on Mac.
-- Install and configure **Git** and **SSH** before cloning.
-- Use **Python 3.10+** and **virtual environments** for Python projects.
-- **Docker** is optional depending on the project.
-
----
-
-# 📎 Quick Links
-
-- [Homebrew](https://brew.sh/)
-- [Git Downloads](https://git-scm.com/downloads)
-- [Python Downloads](https://www.python.org/downloads/)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- [GitHub SSH Setup Guide](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)
+1. Use `pipreqs . --print` to inspect the direct imports needed by the project.
+2. Update `requirements.in` with the dependencies you want to manage directly.
+3. Run `pip-compile requirements.in` to generate a fully pinned `requirements.txt`.
+4. Run `pip-audit -r requirements.txt` to check for known vulnerabilities.
+5. Run `pip-sync requirements.txt` to make your environment match the lockfile exactly.
