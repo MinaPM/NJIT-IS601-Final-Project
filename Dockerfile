@@ -15,6 +15,9 @@ RUN apt-get update && \
 # Upgrade pip and essential Python tools
 RUN python -m pip install --upgrade pip setuptools>=70.0.0 wheel
 
+# Install dev tools
+RUN pip install pipreqs pip-tools pip-audit
+
 # Create non-root user
 RUN groupadd -r appgroup && \
     useradd -r -g appgroup appuser && \
