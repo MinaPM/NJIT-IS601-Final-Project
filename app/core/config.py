@@ -6,6 +6,7 @@ from typing import Optional, List
 class Settings(BaseSettings):
     # Database settings (keeping your existing default)
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/fastapi_db"
+    TEST_DATABASE_URL: Optional[str] = None
     
     # JWT Settings
     JWT_SECRET_KEY: str = "your-super-secret-key-change-this-in-production"
