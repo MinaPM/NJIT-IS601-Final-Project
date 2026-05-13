@@ -40,7 +40,7 @@ from app.models.user import User  # Database model for users
 # API request/response schemas
 from app.schemas.calculation import CalculationBase, CalculationResponse, CalculationUpdate
 from app.schemas.token import TokenResponse  # API token schema
-from app.schemas.user import UserCreate, UserResponse, UserLogin  # User schemas
+from app.schemas.user import UserCreate, UserResponse, UserLogin, UserUpdate  # User schemas
 from app.schemas.base import PasswordMixin
 from app.database import Base, get_db, engine  # Database connection
 from pydantic import BaseModel
@@ -219,7 +219,8 @@ def change_password(
     try:
         PasswordMixin(password=payload.new_password)
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     # Persist the new hashed password to the mapped `password` column
     setattr(user, "password", get_password_hash(payload.new_password))
@@ -227,6 +228,48 @@ def change_password(
     db.refresh(user)
 
     return {"message": "Password changed successfully"}
+
+
+@app.post("/auth/update-profile", response_model=UserResponse, tags=["auth"])
+def update_profile(
+    payload: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: UserResponse = Depends(get_current_active_user),
+):
+    """
+    Update current user's profile fields (username, email, first_name, last_name).
+    Performs basic uniqueness checks for username and email.
+    """
+    user = db.query(User).filter(User.id == current_user.id).first()
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    # If username is changing, ensure uniqueness
+    if payload.username and payload.username != user.username:
+        existing = db.query(User).filter(
+            User.username == payload.username).first()
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
+        user.username = payload.username
+
+    # If email is changing, ensure uniqueness
+    if payload.email and payload.email != user.email:
+        existing = db.query(User).filter(User.email == payload.email).first()
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Email already in use")
+        user.email = payload.email
+
+    if payload.first_name is not None:
+        user.first_name = payload.first_name
+    if payload.last_name is not None:
+        user.last_name = payload.last_name
+
+    db.commit()
+    db.refresh(user)
+    return user
 
 
 # ------------------------------------------------------------------------------

@@ -1,127 +1,357 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "layout.html" %}
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>User Profile</title>
-</head>
+{% block title %}User Profile{% endblock %}
 
-<body>
-    <h1>User Information</h1>
-    <pre id="user-info">Loading...</pre>
-    <p>Username: <span id="username"></span></p>
-    <p>Email: <span id="email"></span></p>
-    <p>Name: <span id="first-name"></span> <span id="last-name"></span></p>
-
-    <button type="button" id="change-password-btn">Change Password</button>
-
-    <div id="password-form" style="display: none; margin-top: 16px;">
-        <h2>Change Password</h2>
-        <form id="change-password-form">
-            <div>
-                <label for="old-password">Old Password</label><br />
-                <input type="password" id="old-password" name="old_password" />
-            </div>
-            <div>
-                <label for="new-password">New Password</label><br />
-                <input type="password" id="new-password" name="new_password" />
-            </div>
-            <div>
-                <label for="confirm-password">Confirm Password</label><br />
-                <input type="password" id="confirm-password" name="confirm_password" />
-            </div>
-
-            <div style="margin-top: 12px;">
-                <button type="submit">Submit</button>
-                <button type="button" id="cancel-password-btn">Cancel</button>
-            </div>
-        </form>
-        <p id="password-message" style="color: red;"></p>
+{% block content %}
+<div class="min-h-screen flex flex-col justify-center py-8 sm:py-12 bg-gray-100">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 class="text-center text-3xl font-bold tracking-tight text-gray-800">Your Profile</h2>
     </div>
 
-    <script>
-        async function loadUserProfile() {
-            const token = localStorage.getItem("access_token");
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-6 shadow rounded-lg sm:px-10">
+            <div id="profileAlert"
+                class="hidden bg-red-100 border border-red-500 text-red-800 px-4 py-3 rounded-md mb-4" role="alert">
+                <div class="flex items-center">
+                    <span id="profileAlertMessage" class="block sm:inline"></span>
+                </div>
+            </div>
+            <div id="profileSuccess"
+                class="hidden bg-green-100 border border-green-500 text-green-800 px-4 py-3 rounded-md mb-4"
+                role="alert">
+                <div class="flex items-center">
+                    <span id="profileSuccessMessage" class="block sm:inline"></span>
+                </div>
+            </div>
 
-            if (!token) {
-                window.location.href = "/login";
-                return;
-            }
+            <form id="profileForm" class="space-y-5">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                    <div class="mt-1">
+                        <input type="text" id="username" name="username" disabled
+                            class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 bg-gray-50 focus:outline-none sm:text-sm">
+                    </div>
+                </div>
 
-            const res = await fetch("/auth/me", {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <div class="mt-1">
+                        <input type="email" id="email" name="email" disabled
+                            class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 bg-gray-50 focus:outline-none sm:text-sm">
+                    </div>
+                </div>
 
-            if (!res.ok) {
-                window.location.href = "/login";
-                return;
-            }
+                <div class="grid grid-cols-1 gap-y-5 gap-x-4 sm:grid-cols-2">
+                    <div>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
+                        <div class="mt-1">
+                            <input type="text" id="first_name" name="first_name" disabled
+                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 bg-gray-50 focus:outline-none sm:text-sm">
+                        </div>
+                    </div>
 
-            const user = await res.json();
+                    <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
+                        <div class="mt-1">
+                            <input type="text" id="last_name" name="last_name" disabled
+                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 bg-gray-50 focus:outline-none sm:text-sm">
+                        </div>
+                    </div>
+                </div>
 
-            document.getElementById("username").textContent = user.username;
-            document.getElementById("email").textContent = user.email;
-            document.getElementById("first-name").textContent = user.first_name;
-            document.getElementById("last-name").textContent = user.last_name;
+                <div id="profileActions" class="pt-2 flex space-x-2">
+                    <button type="button" id="editProfileBtn"
+                        class="w-full flex-1 justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-700 hover:bg-blue-800 focus:outline-none">Edit
+                        Profile</button>
+                    <button type="button" id="changePasswordBtn"
+                        class="w-full flex-1 justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-blue-700 bg-gray-50 hover:bg-gray-100 focus:outline-none">Change
+                        Password</button>
+                </div>
+
+                <div id="editControls" class="hidden pt-2 flex space-x-2">
+                    <button type="button" id="saveProfileBtn"
+                        class="w-full flex-1 justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none">Save</button>
+                    <button type="button" id="cancelEditBtn"
+                        class="w-full flex-1 justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">Cancel</button>
+                </div>
+            </form>
+
+            <!-- Password change form (separate controls) -->
+            <div id="passwordForm" class="mt-6 hidden">
+                <h3 class="text-lg font-medium">Change Password</h3>
+                <form id="change-password-form" class="space-y-4 mt-2">
+                    <div>
+                        <label for="old-password" class="block text-sm font-medium text-gray-700">Old Password</label>
+                        <div class="mt-1">
+                            <input type="password" id="old-password" name="old_password"
+                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="new-password" class="block text-sm font-medium text-gray-700">New Password</label>
+                        <div class="mt-1">
+                            <input type="password" id="new-password" name="new_password"
+                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="confirm-password" class="block text-sm font-medium text-gray-700">Confirm New
+                            Password</label>
+                        <div class="mt-1">
+                            <input type="password" id="confirm-password" name="confirm_password"
+                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-2">
+                        <button type="submit" class="flex-1 py-2 px-4 bg-blue-700 text-white rounded-md">Submit</button>
+                        <button type="button" id="cancel-password-btn"
+                            class="flex-1 py-2 px-4 border rounded-md">Cancel</button>
+                    </div>
+                    <p id="password-message" class="text-sm text-red-600"></p>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const token = localStorage.getItem('access_token');
+        if (!token) { window.location.href = '/login'; return; }
+
+        const profileAlert = document.getElementById('profileAlert');
+        const profileAlertMessage = document.getElementById('profileAlertMessage');
+
+        const profileSuccess = document.getElementById('profileSuccess');
+        const profileSuccessMessage = document.getElementById('profileSuccessMessage');
+
+        function showProfileError(msg) {
+            profileAlertMessage.textContent = msg;
+            profileAlert.classList.remove('hidden');
+            profileSuccess.classList.add('hidden');
+            profileAlert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
-        const passwordForm = document.getElementById("password-form");
-        const changePasswordBtn = document.getElementById("change-password-btn");
-        const cancelPasswordBtn = document.getElementById("cancel-password-btn");
-        const changePasswordForm = document.getElementById("change-password-form");
-        const passwordMessage = document.getElementById("password-message");
+        function hideProfileError() {
+            profileAlert.classList.add('hidden');
+            profileAlertMessage.textContent = '';
+        }
 
-        changePasswordBtn.addEventListener("click", () => {
-            passwordMessage.textContent = "";
-            passwordForm.style.display = "block";
+        function showProfileSuccess(msg) {
+            profileSuccessMessage.textContent = msg;
+            profileSuccess.classList.remove('hidden');
+            profileAlert.classList.add('hidden');
+            profileSuccess.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            setTimeout(() => profileSuccess.classList.add('hidden'), 3000);
+        }
+
+        // Validation helpers (mirrors register page)
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function isValidPassword(password) {
+            return password.length >= 8 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password);
+        }
+
+        function setInputValidation(input, isValid) {
+            if (!input) return;
+            if (isValid) {
+                input.classList.remove('border-red-500');
+                input.classList.add('border-green-500');
+            } else {
+                input.classList.remove('border-green-500');
+                input.classList.add('border-red-500');
+            }
+        }
+
+        async function loadProfile() {
+            const res = await fetch('/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!res.ok) { window.location.href = '/login'; return; }
+            const user = await res.json();
+            document.getElementById('username').value = user.username;
+            document.getElementById('email').value = user.email;
+            document.getElementById('first_name').value = user.first_name;
+            document.getElementById('last_name').value = user.last_name;
+            // Keep stored username in sync so the layout welcome updates across pages
+            try {
+                localStorage.setItem('username', user.username);
+                const welcomeEl = document.getElementById('layoutUserWelcome');
+                if (welcomeEl) {
+                    welcomeEl.textContent = `Welcome, ${user.username}!`;
+                    welcomeEl.classList.remove('hidden');
+                }
+            } catch (e) {
+                // ignore storage errors
+            }
+        }
+
+        loadProfile();
+
+        const editBtn = document.getElementById('editProfileBtn');
+        const changePassBtn = document.getElementById('changePasswordBtn');
+        const saveBtn = document.getElementById('saveProfileBtn');
+        const cancelBtn = document.getElementById('cancelEditBtn');
+        const editControls = document.getElementById('editControls');
+        const profileForm = document.getElementById('profileForm');
+        const passwordFormContainer = document.getElementById('passwordForm');
+
+        function setEditable(editable) {
+            ['username', 'email', 'first_name', 'last_name'].forEach(id => {
+                const el = document.getElementById(id);
+                if (editable) {
+                    el.removeAttribute('disabled');
+                    el.classList.remove('bg-gray-50');
+                } else {
+                    el.setAttribute('disabled', '');
+                    el.classList.add('bg-gray-50');
+                }
+            });
+        }
+
+        editBtn.addEventListener('click', () => {
+            hideProfileError();
+            setEditable(true);
+            editControls.classList.remove('hidden');
+            editBtn.classList.add('hidden');
+            changePassBtn.classList.add('hidden');
+            passwordFormContainer.classList.add('hidden');
         });
 
-        cancelPasswordBtn.addEventListener("click", () => {
-            changePasswordForm.reset();
-            passwordMessage.textContent = "";
-            passwordForm.style.display = "none";
+        cancelBtn.addEventListener('click', async () => {
+            hideProfileError();
+            await loadProfile();
+            setEditable(false);
+            editControls.classList.add('hidden');
+            editBtn.classList.remove('hidden');
+            changePassBtn.classList.remove('hidden');
         });
 
-        changePasswordForm.addEventListener("submit", async (event) => {
-            event.preventDefault();
+        saveBtn.addEventListener('click', async () => {
+            hideProfileError();
+            const payload = {
+                username: document.getElementById('username').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                first_name: document.getElementById('first_name').value.trim(),
+                last_name: document.getElementById('last_name').value.trim()
+            };
 
-            const oldPassword = document.getElementById("old-password").value;
-            const newPassword = document.getElementById("new-password").value;
-            const confirmPassword = document.getElementById("confirm-password").value;
+            // Reset validation styling
+            profileForm.querySelectorAll('input').forEach(input => input.classList.remove('border-red-500', 'border-green-500'));
 
-            if (newPassword !== confirmPassword) {
-                passwordMessage.textContent = "New password and confirmation do not match.";
-                return;
+            // Basic client-side validation
+            let hasErrors = false;
+            const usernameInput = document.getElementById('username');
+            const emailInput = document.getElementById('email');
+
+            if (!payload.username || payload.username.length < 3) {
+                setInputValidation(usernameInput, false);
+                showProfileError('Username must be at least 3 characters');
+                hasErrors = true;
+            } else {
+                setInputValidation(usernameInput, true);
             }
 
-            const token = localStorage.getItem("access_token");
+            if (!isValidEmail(payload.email)) {
+                setInputValidation(emailInput, false);
+                if (!hasErrors) showProfileError('Enter a valid email');
+                hasErrors = true;
+            } else {
+                setInputValidation(emailInput, true);
+            }
 
-            const res = await fetch("/auth/change-password", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    old_password: oldPassword,
-                    new_password: newPassword
-                })
+            if (hasErrors) return;
+
+            const res = await fetch('/auth/update-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(payload)
             });
 
+            const data = await res.json();
             if (!res.ok) {
-                passwordMessage.textContent = "Password change failed.";
+                showProfileError(data.detail || 'Failed to update profile');
                 return;
             }
 
-            changePasswordForm.reset();
-            passwordForm.style.display = "none";
-            passwordMessage.textContent = "";
-            alert("Password changed successfully.");
+            // Success
+            await loadProfile();
+            setEditable(false);
+            editControls.classList.add('hidden');
+            editBtn.classList.remove('hidden');
+            changePassBtn.classList.remove('hidden');
+            showProfileSuccess('Profile updated successfully');
+            // Ensure layout welcome reflects new username immediately
+            try {
+                const welcomeEl = document.getElementById('layoutUserWelcome');
+                const stored = localStorage.getItem('username');
+                if (welcomeEl && stored) {
+                    welcomeEl.textContent = `Welcome, ${stored}!`;
+                    welcomeEl.classList.remove('hidden');
+                }
+            } catch (e) {}
         });
 
-        loadUserProfile();
-    </script>
-</body>
+        // Add blur/input validation similar to register page
+        const emailField = document.getElementById('email');
+        const usernameField = document.getElementById('username');
 
-</html>
+        emailField.addEventListener('blur', function () {
+            if (this.value) setInputValidation(this, isValidEmail(this.value));
+        });
+
+        usernameField.addEventListener('blur', function () {
+            if (this.value) setInputValidation(this, this.value.length >= 3);
+        });
+
+        // Remove validation classes while typing
+        profileForm.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', () => {
+                input.classList.remove('border-red-500', 'border-green-500');
+            });
+        });
+
+        // Password change UI (separate flow)
+        changePassBtn.addEventListener('click', () => {
+            passwordFormContainer.classList.toggle('hidden');
+        });
+
+        const changePasswordForm = document.getElementById('change-password-form');
+        const cancelPasswordBtn = document.getElementById('cancel-password-btn');
+        const passwordMessage = document.getElementById('password-message');
+
+        cancelPasswordBtn.addEventListener('click', () => {
+            changePasswordForm.reset();
+            passwordMessage.textContent = '';
+            passwordFormContainer.classList.add('hidden');
+        });
+
+        changePasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            passwordMessage.textContent = '';
+            const oldPassword = document.getElementById('old-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            if (newPassword !== confirmPassword) { passwordMessage.textContent = 'New password and confirmation do not match.'; setInputValidation(document.getElementById('confirm-password'), false); return; }
+
+            if (!isValidPassword(newPassword)) { passwordMessage.textContent = 'Password must be at least 8 characters long and contain uppercase, lowercase, and numbers.'; setInputValidation(document.getElementById('new-password'), false); return; }
+
+            const res = await fetch('/auth/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ old_password: oldPassword, new_password: newPassword })
+            });
+
+            if (!res.ok) { passwordMessage.textContent = 'Password change failed.'; return; }
+
+            changePasswordForm.reset();
+            passwordFormContainer.classList.add('hidden');
+            alert('Password changed successfully.');
+        });
+    });
+</script>
+
+{% endblock %}
