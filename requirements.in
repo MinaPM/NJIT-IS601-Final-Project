@@ -27,4 +27,4 @@ pytest           >= 9.0.3   #CVE-2025-71176
 python-jose      >= 3.4.0   #PYSEC-2024-233 
 python-multipart >= 0.0.22  #CVE-2026-24486 
 requests         >= 2.33.0  #CVE-2026-25645 
-urllib3          >= 2.6.3   #CVE-2026-21441 
+urllib3          >= 2.7.0   #CVE-2026-44431 
