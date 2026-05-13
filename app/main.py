@@ -41,6 +41,7 @@ from app.models.user import User  # Database model for users
 from app.schemas.calculation import CalculationBase, CalculationResponse, CalculationUpdate
 from app.schemas.token import TokenResponse  # API token schema
 from app.schemas.user import UserCreate, UserResponse, UserLogin  # User schemas
+from app.schemas.base import PasswordMixin
 from app.database import Base, get_db, engine  # Database connection
 from pydantic import BaseModel
 
@@ -213,6 +214,12 @@ def change_password(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Old password is incorrect",
         )
+
+    # Validate new password uses the same rules as on registration
+    try:
+        PasswordMixin(password=payload.new_password)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     # Persist the new hashed password to the mapped `password` column
     setattr(user, "password", get_password_hash(payload.new_password))
